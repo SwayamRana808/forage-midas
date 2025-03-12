@@ -8,6 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 
+import com.jpmc.midascore.entity.UserRecord;
+ 
+import com.jpmc.midascore.repository.UserRepository;
+
+
 @SpringBootTest
 @DirtiesContext
 @EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
@@ -23,6 +28,9 @@ public class TaskFourTests {
     @Autowired
     private FileLoader fileLoader;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     void task_four_verifier() throws InterruptedException {
         userPopulator.populate();
@@ -30,8 +38,14 @@ public class TaskFourTests {
         for (String transactionLine : transactionLines) {
             kafkaProducer.send(transactionLine);
         }
-        Thread.sleep(2000);
+        Thread.sleep(20000);
 
+        UserRecord wilbur = userRepository.findByName("wilbur");
+        if (wilbur != null) {
+            System.out.println("Wilbur's final balance: " + Math.floor(wilbur.getBalance()));
+        } else {
+            System.out.println("Wilbur not found in the database!");
+        }
 
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
